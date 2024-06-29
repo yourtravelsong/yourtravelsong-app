@@ -11,17 +11,17 @@ class UnitTestCase(unittest.TestCase):
                                  json={'artist': 'Radiohead', 'title': 'Creep'},
                                  # json=serialized,
                                  url="http://127.0.0.1:5000/getsuggestion")
-        print(response.content)
+        #print(response.content)
 
         res = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone("success", res['status'])
-        print("Result",res['result'])
+        #print("Result",res['result'])
         self.assertIsNotNone(res['result'])
         self.assertIsNotNone(res['result']['offers'])
         self.assertIsNotNone(res['result']['sentiments'])
-
-
+        dataString = json.dumps(res, indent=4)
+        print(dataString)
     def test_ollama_chat(self):
         response = ollama.chat(model='llama3', messages=[
             {
