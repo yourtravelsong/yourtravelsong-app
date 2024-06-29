@@ -4,8 +4,10 @@ import pandas as pd
 import json
 
 ds = load_dataset("zsoltardai/spotify-tracks", split="train")
+print(ds)
 os.makedirs('../data/songs', exist_ok=True)
-ds.to_csv("../data/songs/song_train.csv")
+ds.to_json("../data/songs/song_train.json", index=False)
+# ds.to_csv("../data/songs/song_train.csv")
 """ for split in ds.keys():
     df = ds[split].to_pandas()
     df.to_json(f'../data/songs/song_{split}.json', index=False)
