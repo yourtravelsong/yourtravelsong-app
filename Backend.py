@@ -61,7 +61,7 @@ def get_suggestion(artist, song):
     return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": sentimentsFromLyric, "offers": dataflights}
 
 
-def getFlights(codeDestination, codeOrigin, departureDate='2024-11-01', adults=1):
+def getFlights(codeDestination, codeOrigin, departureDate='2024-11-01', adults=1, topFlights=3):
 
     try:
         response = amadeus.shopping.flight_offers_search.get(
@@ -75,15 +75,20 @@ def getFlights(codeDestination, codeOrigin, departureDate='2024-11-01', adults=1
         print(dataString)
 
         if len(response.data) > 0:
+            resultAllFlights = []
+
             print("Flight found")
-            firstFlight = response.data[0]
-            price = firstFlight['price']['total']
-            currency = firstFlight['price']['currency']
-            airlinecode = firstFlight['validatingAirlineCodes']
-            airlinename = getAirlineCode(airlinecode)
-            print("Price: ", price, currency, " Airline_code: ", airlinecode, " Airline_name: ",airlinename)
-            response = {"status": "success", "type": "flight", "price": price, "departure": departureDate,  "currency": currency, "airline_code": airlinecode, "airline_name":airlinename}
-            return response
+
+            for i in range(min(topFlights, len(response.data)) ):
+                firstFlight = response.data[i]
+                price = firstFlight['price']['total']
+                currency = firstFlight['price']['currency']
+                airlinecode = firstFlight['validatingAirlineCodes']
+                airlinename = getAirlineCode(airlinecode)
+                print("Price: ", price, currency, " Airline_code: ", airlinecode, " Airline_name: ",airlinename)
+                aFlight = { "type": "flight", "airline_name":airlinename, "price": price,   "currency": currency, "departure": departureDate,"airline_code": airlinecode,"status": "success","i":i}
+                resultAllFlights.append(aFlight)
+            return resultAllFlights
     except ResponseError as error:
         print("Error retrieving flights {}".format(error))
         return  None
