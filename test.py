@@ -5,10 +5,8 @@ from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core import get_response_synthesizer, VectorStoreIndex
 from pinecone import Pinecone
 from llama_index.vector_stores.pinecone import PineconeVectorStore
-from custom_query_engine import RAGQueryEngine
-from config import settings
-import os
-
+from embeddings.custom_query_engine import RAGQueryEngine
+from embeddings.config import settings
 
 llm = MistralAI(api_key=settings.MISTRAL_API_KEY)
 embed_model = MistralAIEmbedding(api_key=settings.MISTRAL_API_KEY)
@@ -20,7 +18,7 @@ pc = Pinecone(
     api_key=settings.PINECONE_API_KEY
 )
 
-pinecone_index = pc.Index(index_name, llm=llm)
+pinecone_index = pc.Index(index_name)
 
 # Initialize VectorStore
 vector_store = PineconeVectorStore(pinecone_index=pinecone_index, embed_model=embed_model)
