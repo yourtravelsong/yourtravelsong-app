@@ -17,11 +17,16 @@ def travel_plan(results):
     st.divider()
     st.markdown("Would you like to know your :gray-background[personalized travel plans?] :airplane_departure: ")
     if (st.button("Show me!")):
+        i = 0
         for offer in results["result"]["offers"]:
-            st.header(f"Travel plan idea: {offer["i"]}")
-            for travel_property in offer:
-                if travel_property not in ["i", "type", "status"]:
-                    st.write(f"· {travel_property} : {offer[travel_property]}")
+            omit = False
+            for key in offer:
+                if offer[key] == None:
+                    omit = True
+            if (not omit):
+                i += 1        
+                st.header(f"Travel plan idea #{i}")
+                st.write(f"You have an available flight with {offer["airline_code"][0]} - {offer["airline_name"]}, with its departure at {offer["departure"]}, with a price of {offer["price"]} {offer["currency"]}.")
 
 def print_city_img(city: str, show: bool) -> None:
     if (show):
@@ -44,7 +49,7 @@ def write_results(cities: list[str], expl: str) -> None:
         st.write("")
         if (expl):
             st.caption(expl)
-        print_city_img(cities[0], show=False) # false to not waste credits for the unsplash api
+        print_city_img(cities[0], show=True) # false to not waste credits for the unsplash api
         st.write("#### Other recommendations:")
         for city in cities[1:]:
             st.write(f"· {city}")
@@ -75,14 +80,14 @@ def main() -> None:
     st.divider()
     song, author = get_input()
 
-    json_path = ""
+    json_path = "results.json" #HARDCODED!!!!
     if not os.path.exists(json_path):
         st.warning("Something went wrong :(")
         st.stop()
 
     # get the results
     results = get_res(json_path)
-    
+
     # display output
     cities, explanation = start_exec(song, author, results)
     write_results(cities, explanation)
