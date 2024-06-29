@@ -2,14 +2,26 @@
 import streamlit as st
 import requests
 import os
+import json
+import pandas as pd
 
 API_KEY = os.getenv("UNSPLASH_API_KEY")
 
-def travel_plan():
+def get_res(json_path: str):
+    f = open(json_path)
+    res = json.load(f)
+    f.close()
+    return res
+
+def travel_plan(results):
     st.divider()
-    st.markdown("Would you like to know your :gray-background[personalized travel plan?] :airplane_departure: ")
+    st.markdown("Would you like to know your :gray-background[personalized travel plans?] :airplane_departure: ")
     if (st.button("Show me!")):
-        st.write("example text")
+        for offer in results["result"]["offers"]:
+            st.header(f"Travel plan idea: {offer["i"]}")
+            for travel_property in offer:
+                if travel_property not in ["i", "type", "status"]:
+                    st.write(f"· {travel_property} : {offer[travel_property]}")
 
 def print_city_img(city: str, show: bool) -> None:
     if (show):
@@ -25,26 +37,26 @@ def print_city_img(city: str, show: bool) -> None:
             st.image(image_response.content)
 
 def write_results(cities: list[str], expl: str) -> None:
-    st.divider()
-    st.write("Top result:")
-    st.write(f"## {cities[0]}")
-    st.write("")
-    st.caption(expl)
-    print_city_img(cities[0], show=True) # false to not waste credits for the unsplash api
-    st.write("#### Other recommendations:")
-    for city in cities[1:]:
-        st.write(f"· {city}")
+    if (len(cities) > 0):
+        st.divider()
+        st.write("Top result:")
+        st.write(f"## {cities[0]}")
+        st.write("")
+        if (expl):
+            st.caption(expl)
+        print_city_img(cities[0], show=False) # false to not waste credits for the unsplash api
+        st.write("#### Other recommendations:")
+        for city in cities[1:]:
+            st.write(f"· {city}")
 
 
-def start_exec(song: str, author: str):
-    recommended_cities = ["Denver", "Cincinatti", "Detroit"]
+def start_exec(song, author, results):
+    # get cities from each result
+    recommended_cities = []
+    for res in results:
+        recommended_cities.append(results["result"]["city_sugg"])
+
     result_explanation: str = "This would be a *great* location for your travel! It includes some museums in pop art and other activities you might fancy."
-    req_completed = False
-    #request output from our program and set req_completed to true (NOW HARDCODED)
-    req_completed = True
-    if not req_completed:
-        st.write("loading...")
-        st.stop()
     return recommended_cities, result_explanation
 
 def get_input() -> str:
@@ -62,9 +74,19 @@ def main() -> None:
     st.title("YourTravelSong")
     st.divider()
     song, author = get_input()
-    cities, explanation = start_exec(song, author)
+
+    json_path = ""
+    if not os.path.exists(json_path):
+        st.warning("Something went wrong :(")
+        st.stop()
+
+    # get the results
+    results = get_res(json_path)
+    
+    # display output
+    cities, explanation = start_exec(song, author, results)
     write_results(cities, explanation)
-    travel_plan()
+    travel_plan(results)
 
 if __name__ == "__main__":
     main()
