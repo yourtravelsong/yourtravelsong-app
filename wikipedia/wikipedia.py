@@ -8,13 +8,18 @@ wiki_wiki = wikipediaapi.Wikipedia(
     'en'
 )
 
-def get_city_info(city_name):
+def get_city_info(city_name, path = '../data/cities'):
+    cityPath = f'{path}/{city_name}.txt'
+    if os.path.exists(cityPath):
+        print("Already analyzed ", city_name)
+        return None
+
+    os.makedirs(path, exist_ok=True)
     page = wiki_wiki.page(city_name)
-    os.makedirs('../data/cities', exist_ok=True)
     if page.exists():
-        
-        with open(f'../data/cities/{city_name}.txt', 'w') as f:
+        with open(cityPath, 'w') as f:
             f.write(page.text)
+            return page.text
     else:
         return None
     
