@@ -1,27 +1,50 @@
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-# from llama_index.embeddings.openai import OpenAIEmbedding
-# from llama_index.llms.openai import OpenAI
-from llama_index.llms.ollama import Ollama
+from llama_index.embeddings.mistralai import MistralAIEmbedding
+from llama_index.llms.mistralai import MistralAI
 
+from llama_index.core.query_engine import CustomQueryEngine
+from llama_index.core.retrievers import BaseRetriever, VectorIndexRetriever
+from llama_index.core import get_response_synthesizer
+from llama_index.core.response_synthesizers import BaseSynthesizer
+from pinecone import Pinecone
+from llama_index.vector_stores.pinecone import PineconeVectorStore
+from config import settings
 import os
 
-# OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# embed_model = OpenAIEmbedding(api_key=OPENAI_API_KEY)
-# llm = OpenAI(api_key=OPENAI_API_KEY)
-Settings.embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-base-en-v1.5")
-Settings.llm = Ollama(model="llama3", request_timeout=360.0)
+class RAGQueryEngine(CustomQueryEngine):
+    """RAG Query Engine."""
 
-documents = SimpleDirectoryReader("../data/cities").load_data()
+    retriever: BaseRetriever
+    response_synthesizer: BaseSynthesizer
 
-# PERSIST_DIR = "./storage"
+    def custom_query(self, query_str: str):
+        nodes = self.retriever.retrieve(query_str)
+        response_obj = self.response_synthesizer.synthesize(query_str, nodes)
+        return response_obj
+    
 
-index = VectorStoreIndex.from_documents(documents)
-    # store it for later
-# index.storage_context.persist(persist_dir=PERSIST_DIR)
 
-query_engine = index.as_query_engine()
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
+llm = MistralAI(api_key=MISTRAL_API_KEY)
+
+index_name = "cities"
+
+
+pc = Pinecone(
+    api_key=settings.PINECONE_API_KEY
+)
+
+pinecone_index = pc.Index(index_name)
+
+# Initialize VectorStore
+vector_store = PineconeVectorStore(pinecone_index=pinecone_index, llm=llm)
+
+vector_index = VectorStoreIndex.from_vector_store(vector_store=vector_store, llm=llm)
+
+retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=5, llm=llm)
 
 query = """
     What cities do you think someone listening to the following song would like to visit based on the sentiment of the song. Base your answers only on cities that appear in the context? explain briefly why.
@@ -54,4 +77,12 @@ I hope some day you'll join us
 And the world will be as one
 """
 
-print(query_engine.query(query))
+synthesizer = get_response_synthesizer(response_mode="compact", llm=llm)
+query_engine = RAGQueryEngine(
+    retriever=retriever, 
+    response_synthesizer=synthesizer
+)
+
+response = query_engine.query(query)
+
+print(str(response))
