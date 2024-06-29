@@ -5,20 +5,20 @@ from llama_index.core.retrievers import VectorIndexRetriever
 
 from pinecone import Pinecone, PodSpec
 
-from config import settings
+from embeddings.config import settings
 
 
 
 class PineconeRpository:
     def __init__(self):
         self.api_key = settings.PINECONE_API_KEY
-        self.embed_model = MistralAIEmbedding(api_key=self.api_key)
+        self.embed_model = MistralAIEmbedding(api_key=settings.MISTRAL_API_KEY)
         self.pc = Pinecone(api_key=self.api_key)
         self.documents = self.get_documents()
     
     def get_documents(
             self, 
-            dociments_path:str="../data/cities"
+            dociments_path:str="data/cities"
         ):
         return SimpleDirectoryReader(dociments_path).load_data()
 
