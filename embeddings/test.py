@@ -1,34 +1,17 @@
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
-from llama_index.embeddings.mistralai import MistralAIEmbedding
 from llama_index.llms.mistralai import MistralAI
+from llama_index.embeddings.mistralai import MistralAIEmbedding
 
-from llama_index.core.query_engine import CustomQueryEngine
-from llama_index.core.retrievers import BaseRetriever, VectorIndexRetriever
-from llama_index.core import get_response_synthesizer
-from llama_index.core.response_synthesizers import BaseSynthesizer
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core import get_response_synthesizer, VectorStoreIndex
 from pinecone import Pinecone
 from llama_index.vector_stores.pinecone import PineconeVectorStore
+from custom_query_engine import RAGQueryEngine
 from config import settings
 import os
 
 
-class RAGQueryEngine(CustomQueryEngine):
-    """RAG Query Engine."""
-
-    retriever: BaseRetriever
-    response_synthesizer: BaseSynthesizer
-
-    def custom_query(self, query_str: str):
-        nodes = self.retriever.retrieve(query_str)
-        response_obj = self.response_synthesizer.synthesize(query_str, nodes)
-        return response_obj
-    
-
-
-
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
-
-llm = MistralAI(api_key=MISTRAL_API_KEY)
+llm = MistralAI(api_key=settings.MISTRAL_API_KEY)
+embed_model = MistralAIEmbedding(api_key=settings.MISTRAL_API_KEY)
 
 index_name = "cities"
 
@@ -37,14 +20,14 @@ pc = Pinecone(
     api_key=settings.PINECONE_API_KEY
 )
 
-pinecone_index = pc.Index(index_name)
+pinecone_index = pc.Index(index_name, llm=llm)
 
 # Initialize VectorStore
-vector_store = PineconeVectorStore(pinecone_index=pinecone_index, llm=llm)
+vector_store = PineconeVectorStore(pinecone_index=pinecone_index, embed_model=embed_model)
 
-vector_index = VectorStoreIndex.from_vector_store(vector_store=vector_store, llm=llm)
+vector_index = VectorStoreIndex.from_vector_store(vector_store=vector_store, embed_model=embed_model)
 
-retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=5, llm=llm)
+retriever = VectorIndexRetriever(index=vector_index, similarity_top_k=5, embed_model=embed_model)
 
 query = """
     What cities do you think someone listening to the following song would like to visit based on the sentiment of the song. Base your answers only on cities that appear in the context? explain briefly why.
@@ -76,6 +59,7 @@ But I'm not the only one
 I hope some day you'll join us
 And the world will be as one
 """
+
 
 synthesizer = get_response_synthesizer(response_mode="compact", llm=llm)
 query_engine = RAGQueryEngine(
