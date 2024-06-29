@@ -24,6 +24,6 @@ def get_city_info(city_name, path = '../data/cities'):
         return None
     
 if __name__ == '__main__':
-    world_cities = json.load(open('world_cities.json'))['world_cities']
+    world_cities = json.load(open('world_cities_top500.json'))['world_cities']
     for city in world_cities:
         get_city_info(city)
