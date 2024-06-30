@@ -57,7 +57,7 @@ class TravelBackend:
 
         if len(obtainedCities) == 0:
             print("NO cities found")
-            return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": [], "offers": []}
+            return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": [], "recommendations": []}
 
         allOffers = []
         for aCity in obtainedCities:
