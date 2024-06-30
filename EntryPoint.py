@@ -11,25 +11,27 @@ with app.app_context():
    # if 'singleton' not in g:
     #    g.singleton = Singleton()
 
-
 @app.route('/getsuggestion', methods=['GET', 'POST'])
 def get_suggestion():
     if request.method == 'POST':
+        print("Receiving {} request".format(request.method))
         counter.increment()
         print("Invoked: ", counter.get_value())
         artist = request.json["artist"]
         song = request.json["title"]
-        print("Input: ", artist, song)
+        print("Input post: ", artist, song)
 
         result = backend.get_suggestion(artist, song)
 
         return jsonify({"status": "success", "result": result})
-
-    elif request.method == 'GET':
-        return jsonify({"status": "error", "message": "GET method not supported"})
+    if request.method == 'GET':
+        artist = request.args.get('artist')
+        song = request.args.get('title')
+        print("Input get: ", artist, song)
+        result = backend.get_suggestion(artist, song)
+        return jsonify({"status": "success", "result": result})
     else:
         return jsonify({"status": "error", "message": "HTTP method not supported"})
-
 
 
 if __name__ == '__main__':
