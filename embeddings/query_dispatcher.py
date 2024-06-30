@@ -41,7 +41,9 @@ class QueryDispatcher:
             on cities that appear in the context?.
             I want you to return a json response such that ("song": "song_name", 
             "cities": ["city1", "city2", "city3"], "sentiment": ["sentiment1", 
-            "sentiment2", "sentiment3], "reason_why_city1": "reason1")
+            "sentiment2", "sentiment3], "reasons_why": dict("city1":"reason_why_city1", 
+                                                        "city2":"reason_why_city2"
+                                                        "city3":"reason_why_city3"))
 
             song: {song}
             song_lyrics: {self.song_lyrics}
