@@ -63,6 +63,8 @@ curl -X post http://127.0.0.1:5000/getsuggestion -d '{"artist": "<Artist_Name>",
 ## To run the frontend
 
 
-````
+```
 streamlit run Introduction.py
 ```
+
+Then, follow the instruccions shown on the terminal.
