@@ -3,10 +3,14 @@ import os
 import json
 from amadeus import Client, ResponseError
 
+from embeddings.query_dispatcher import QueryDispatcher
+
+
 class TravelBackend:
 
     def __init__(self):
         print("Init TravelBackend")
+        self.query_dispatcher = QueryDispatcher()
 
 
     def retrieveLyric(self, artist, song):
@@ -14,10 +18,12 @@ class TravelBackend:
         print("WARNING, HARDCODED LYRIC")
         return "I'm a creep, I'm a weirdo. What the hell am I doing here? I don't belong here."
 
-    def retrieveCity(self, artist, song):
-        ## todo
-        print("WARNING, HARDCODED CITY")
-        return "New York"
+    def retrieveCities(self, artist, song):
+        response = self.query_dispatcher.get_response(song)
+        print("Response from query_dispatcher: ", response.response)
+        responseJson = json.loads(response.response)
+        print("Formated response: ", json.dumps(responseJson, indent=4))
+        return responseJson["cities"]
 
     amadeus = Client(
         client_id=os.environ['AMADEUS_API_KEY'],
@@ -26,7 +32,7 @@ class TravelBackend:
 
     def computeIATACode(self,model, obtainedCity):
         obtain_sentiments_list = model.complete("which is the IATA code of {} airport? return just the code".format(obtainedCity))
-        print("Sentiments retrieved: ", obtain_sentiments_list.text)
+        print("IATACode: ", obtain_sentiments_list.text)
 
         return obtain_sentiments_list.text.strip()
 
@@ -43,6 +49,8 @@ class TravelBackend:
             return None
     def get_suggestion(self, artist, song):
 
+
+
         retrievedLyric = self.retrieveLyric(artist, song)
 
         llama = Ollama(
@@ -55,14 +63,20 @@ class TravelBackend:
         sentimentsFromLyric = obtain_sentiments_list.text.split(",")
 
 
-        obtainedCity = self.retrieveCity(artist, song)
+        obtainedCities = self.retrieveCities(artist, song)
 
+        if len(obtainedCities) == 0:
+            print("NO cities found")
+            return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": sentimentsFromLyric, "offers": []}
+
+        ## TODO: for now we just take the first city, expand to multiple cities
+
+        print("sentimentsFromLyric", sentimentsFromLyric)
+        obtainedCity = obtainedCities[0]
         IATAcode = self.computeIATACode(llama, obtainedCity)
         print("IATA code: ", IATAcode, " for city: ", obtainedCity)
 
-        print("sentimentsFromLyric", sentimentsFromLyric)
-
-        dataflights = self.getFlights(IATAcode, "MAD", departureDate='2024-11-01', adults=1)
+        dataflights = self.getFlights(IATAcode, "BCN", departureDate='2024-11-01', adults=1)
 
         return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": sentimentsFromLyric, "offers": dataflights}
 
@@ -70,6 +84,7 @@ class TravelBackend:
     def getFlights(self, codeDestination, codeOrigin, departureDate='2024-11-01', adults=1, topFlights=3):
 
         try:
+            print("Searching flights from {} to {} on {}".format(codeOrigin, codeDestination, departureDate))
             response = self.amadeus.shopping.flight_offers_search.get(
                 originLocationCode=codeOrigin,
                 destinationLocationCode=codeDestination,
@@ -91,5 +106,11 @@ class TravelBackend:
                     resultAllFlights.append(aFlight)
                 return resultAllFlights
         except ResponseError as error:
-            print("Error retrieving flights {}".format(error))
-            return  None
+            print("Error Asking for flights  to Amadeus")
+            resultAllFlights = []
+            print("Generating fake data for flights")
+            aFlight = {"type": "flight", "airline_name": "TAP", "price": 100, "currency": "EUR",
+                       "departure": "2024-11-11", "airline_code": "TP", "status": "success", "i":0}
+
+            resultAllFlights.append(aFlight)
+            return resultAllFlights
