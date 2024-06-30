@@ -1,7 +1,9 @@
-from llama_index.llms.ollama import Ollama
+#from llama_index.llms.ollama import Ollama
 import os
 import json
 from amadeus import Client, ResponseError
+from datetime import datetime, timedelta
+
 
 from embeddings.query_dispatcher import QueryDispatcher
 
@@ -18,12 +20,13 @@ class TravelBackend:
         print("WARNING, HARDCODED LYRIC")
         return "I'm a creep, I'm a weirdo. What the hell am I doing here? I don't belong here."
 
-    def retrieveCities(self, artist, song):
-        response = self.query_dispatcher.get_response(song)
-        print("Response from query_dispatcher: ", response.response)
-        responseJson = json.loads(response.response)
+
+    def retrieveSuggestion(self, artist, song):
+        response = self.query_dispatcher.get_response(song=song, artist=artist)
+        print("Response from query_dispatcher: ", response)
+        responseJson = json.loads(response)
         print("Formated response: ", json.dumps(responseJson, indent=4))
-        return responseJson["cities"]
+        return responseJson
 
     amadeus = Client(
         client_id=os.environ['AMADEUS_API_KEY'],
@@ -31,9 +34,8 @@ class TravelBackend:
     )
 
     def computeIATACode(self,model, obtainedCity):
-        obtain_sentiments_list = model.complete("which is the IATA code of {} airport? return just the code".format(obtainedCity))
+        obtain_sentiments_list = model.complete("which is the IATA code of {} airport? return just the code, no explanation".format(obtainedCity))
         print("IATACode: ", obtain_sentiments_list.text)
-
         return obtain_sentiments_list.text.strip()
 
     def getAirlineCode(self,airlineCode):
@@ -49,37 +51,40 @@ class TravelBackend:
             return None
     def get_suggestion(self, artist, song):
 
+        suggestion = self.retrieveSuggestion(artist, song)
 
-
-        retrievedLyric = self.retrieveLyric(artist, song)
-
-        llama = Ollama(
-            model="llama3",
-           # request_timeout=40.0,
-        )
-
-        obtain_sentiments_list = llama.complete(f"return the sentiments you find in this lyric, just the sentiments, no more words, separated by commas:\n  {retrievedLyric}")
-        print("Sentiments retrieved: ",obtain_sentiments_list.text)
-        sentimentsFromLyric = obtain_sentiments_list.text.split(",")
-
-
-        obtainedCities = self.retrieveCities(artist, song)
+        obtainedCities = suggestion["cities"]
 
         if len(obtainedCities) == 0:
             print("NO cities found")
-            return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": sentimentsFromLyric, "offers": []}
+            return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": [], "offers": []}
 
         ## TODO: for now we just take the first city, expand to multiple cities
 
-        print("sentimentsFromLyric", sentimentsFromLyric)
-        obtainedCity = obtainedCities[0]
-        IATAcode = self.computeIATACode(llama, obtainedCity)
-        print("IATA code: ", IATAcode, " for city: ", obtainedCity)
+       # print("sentimentsFromLyric", sentimentsFromLyric)
+        allOffers = []
+        for aCity in obtainedCities:
+             ### TODO
+            IATAcode = self.computeIATACode(self.query_dispatcher.llm, aCity)
+            print("IATA code: ", IATAcode, " for city: ", aCity)
+            currentLocation = self.getCurrentLocation()
 
-        dataflights = self.getFlights(IATAcode, "BCN", departureDate='2024-11-01', adults=1)
+            current_date = datetime.now()
+            candidate_dep_date = current_date + timedelta(days=10)
+            formatted_candidate_dep_date = candidate_dep_date.strftime('%Y-%m-%d')
+            dataflights = self.getFlights(IATAcode, currentLocation, departureDate=formatted_candidate_dep_date, adults=1)
 
-        return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": sentimentsFromLyric, "offers": dataflights}
+            dataCity = {"city": aCity, "offers": dataflights, "reason": suggestion["reasons_why"][aCity] }
 
+            allOffers.append(dataCity)
+
+
+        sentimentsFromLyric = suggestion['sentiment']
+        return {"artist": artist, "song": song,  "sentiments": sentimentsFromLyric, "offers": allOffers}
+
+    def getCurrentLocation(self):
+        ### TODO: obtain client location
+        return "BCN"
 
     def getFlights(self, codeDestination, codeOrigin, departureDate='2024-11-01', adults=1, topFlights=3):
 
@@ -109,7 +114,7 @@ class TravelBackend:
             print("Error Asking for flights  to Amadeus")
             resultAllFlights = []
             print("Generating fake data for flights")
-            aFlight = {"type": "flight", "airline_name": "TAP", "price": 100, "currency": "EUR",
+            aFlight = {"type": "flight", "airline_name": "TAP", "price": 87, "currency": "EUR",
                        "departure": "2024-11-11", "airline_code": "TP", "status": "success", "i":0}
 
             resultAllFlights.append(aFlight)
