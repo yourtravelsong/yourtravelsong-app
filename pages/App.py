@@ -26,12 +26,15 @@ def print_city_img(city: str) -> None:
     search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={UNSPLASH_API_KEY}"
     response = requests.get(search_url)
     st.write(response)
-    results = response.json().get("results")
-    st.write(results)
-    image_url = results["urls"]["regular"]
-    image_response = requests.get(image_url)
-    
-    st.image(image_response.content)
+    try:
+        results = response.json().get("results")
+        st.write(results)
+        image_url = results["urls"]["regular"]
+        image_response = requests.get(image_url)
+
+        st.image(image_response.content)
+    except Exception as e:
+       print("Error {}".format(e))
 
 def write_results(cities: list[str], expl: str) -> None:
     if (len(cities) > 0):
@@ -41,7 +44,7 @@ def write_results(cities: list[str], expl: str) -> None:
         st.write("")
         if (expl):
             st.caption(expl)
-        print_city_img(cities[0])
+        #print_city_img(cities[0])
         if (len(cities) != 0):
             st.write("#### Other recommendations:")
             for city in cities[1:]:
