@@ -30,18 +30,17 @@ def travel_plan(results):
                     st.image(f"../airline-logos/logos/{offer["airline_code"][0]}.png", None, 500)
                 st.write(f"You have an available flight with {offer["airline_code"][0]} - {offer["airline_name"]}, with its departure at {offer["departure"]}, with a price of {offer["price"]} {offer["currency"]}.")
 
-def print_city_img(city: str, show: bool) -> None:
-    if (show == True):
-        search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={API_KEY}"
+def print_city_img(city: str) -> None:
+    search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={API_KEY}"
+    
+    response = requests.get(search_url)
+    results = response.json().get("results")
+    
+    if results:
+        image_url = results[0]["urls"]["regular"]
+        image_response = requests.get(image_url)
         
-        response = requests.get(search_url)
-        results = response.json().get("results")
-        
-        if results:
-            image_url = results[0]["urls"]["regular"]
-            image_response = requests.get(image_url)
-            
-            st.image(image_response.content)
+        st.image(image_response.content)
 
 def write_results(cities: list[str], expl: str) -> None:
     if (len(cities) > 0):
@@ -51,10 +50,11 @@ def write_results(cities: list[str], expl: str) -> None:
         st.write("")
         if (expl):
             st.caption(expl)
-        print_city_img(cities[0], show=True) # false to not waste credits for the unsplash api
-        st.write("#### Other recommendations:")
-        for city in cities[1:]:
-            st.write(f"· {city}")
+        print_city_img(cities[0]) # false to not waste credits for the unsplash api
+        if (len(cities) != 0):
+            st.write("#### Other recommendations:")
+            for city in cities[1:]:
+                st.write(f"· {city}")
 
 
 def start_exec(song, author, results):
