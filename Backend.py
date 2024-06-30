@@ -34,8 +34,8 @@ class TravelBackend:
     )
 
     def computeIATACode(self,model, obtainedCity):
-        obtain_sentiments_list = model.complete("which is the IATA code of {} airport? return just the code, no explanation".format(obtainedCity))
-        print("IATACode: ", obtain_sentiments_list.text)
+        obtain_sentiments_list = model.complete("which is the ICAO code of {} airport? return just the code, no explanation".format(obtainedCity))
+        print("ICAOCode: ", obtain_sentiments_list.text)
         return obtain_sentiments_list.text.strip()
 
     def getAirlineCode(self,airlineCode):
@@ -111,7 +111,7 @@ class TravelBackend:
             resultAllFlights = []
             print("Generating fake data for flights")
             aFlight = {"type": "flight", "airline_name": "TAP", "price": 87, "currency": "EUR",
-                       "departure": "2024-11-11", "airline_code": "TP", "status": "success", "i":0}
+                       "departure": "2024-11-11", "airline_code": "TAP", "status": "success", "i":0}
 
             resultAllFlights.append(aFlight)
             return resultAllFlights

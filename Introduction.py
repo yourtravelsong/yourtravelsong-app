@@ -33,7 +33,7 @@ st.divider()
 # Explain project
 st.write("## How did we do it?")
     #add images to display in here
-st.image(["st_images/scheme.png"])
+st.image(["st_images/img2.png"])
 # st_player("https://soundcloud.com/toto-official/africa-1?in=alana97/sets/80s")
 
 # print links randomly ordered
