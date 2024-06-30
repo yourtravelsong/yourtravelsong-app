@@ -15,17 +15,11 @@ class TravelBackend:
         self.query_dispatcher = QueryDispatcher()
 
 
-    def retrieveLyric(self, artist, song):
-        ## todo
-        print("WARNING, HARDCODED LYRIC")
-        return "I'm a creep, I'm a weirdo. What the hell am I doing here? I don't belong here."
-
-
     def retrieveSuggestion(self, artist, song):
         response = self.query_dispatcher.get_response(song=song, artist=artist)
         print("Response from query_dispatcher: ", response)
         responseJson = json.loads(response)
-        print("Formated response: ", json.dumps(responseJson, indent=4))
+      # print("Formated response: ", json.dumps(responseJson, indent=4))
         return responseJson
 
     amadeus = Client(
@@ -38,12 +32,12 @@ class TravelBackend:
         print("ICAOCode: ", obtain_sentiments_list.text)
         return obtain_sentiments_list.text.strip()
 
-    def getAirlineCode(self,airlineCode):
+    def getAirlineData(self,airlineCode):
         try:
             response = self.amadeus.get('/v1/reference-data/airlines', airlineCodes=airlineCode)
             print("Airlines response {}".format( response))
             if len(response.data) > 0:
-                return response.data[0]["businessName"]
+                return response.data[0]["businessName"], response.data[0]["icaoCode"]
             else:
                 return "Unknown-Airline-Code"
         except ResponseError as error:
@@ -101,9 +95,15 @@ class TravelBackend:
                     price = firstFlight['price']['total']
                     currency = firstFlight['price']['currency']
                     airlinecode = firstFlight['validatingAirlineCodes']
-                    airlinename = self.getAirlineCode(airlinecode)
-                    print("Price: ", price, currency, " Airline_code: ", airlinecode, " Airline_name: ",airlinename)
-                    aFlight = { "type": "flight", "airline_name":airlinename, "price": price,   "currency": currency, "departure": departureDate,"airline_code": airlinecode,"status": "success","i":i}
+                    airlinename, icaoCode = self.getAirlineData(airlinecode)
+                    print("Price: ", price, currency, " Airline_code: ", airlinecode, " Airline_name: ", airlinename,
+                          "Airline_icao_code", icaoCode)
+                    aFlight = {"type": "flight", "airline_name": airlinename, "price": price,
+                               "currency": currency,
+                               "departure": departureDate,
+                               "airline_code": airlinecode,
+                               "airline_icao_code": icaoCode,
+                               "status": "success", "i": i}
                     resultAllFlights.append(aFlight)
                 return resultAllFlights
         except ResponseError as error:
@@ -111,7 +111,7 @@ class TravelBackend:
             resultAllFlights = []
             print("Generating fake data for flights")
             aFlight = {"type": "flight", "airline_name": "TAP", "price": 87, "currency": "EUR",
-                       "departure": "2024-11-11", "airline_code": "TAP", "status": "success", "i":0}
+                       "departure": "2024-11-11", "airline_code": "TAP", "airline_icao_code": "TAP", "status": "success", "i":0}
 
             resultAllFlights.append(aFlight)
             return resultAllFlights
