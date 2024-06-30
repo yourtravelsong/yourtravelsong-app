@@ -16,8 +16,8 @@ st.sidebar.success("Try our app by selecting the ""App"" page above!.")
 
 st.markdown(
     """
-    YourTravelSong is a product with an API-like framework built specifically for
-    interpreting songs into desired travel destinations and real-time travel plans.
+    YourTravelSong is a product  built specifically to
+    interpret songs into desired travel destinations and real-time found travel plans.
     \n**👈 Select the App page from the sidebar** to see some examples
     of what Streamlit can do!
     \n### Want to learn more?
@@ -26,10 +26,15 @@ st.markdown("- Perfect for **music-integrated apps** to display heavily **person
 st.markdown("- Versatile and easy to integrate, it _only_ needs a song and an author to work.")
 st.markdown("- Gives up many destinations ordered in relevance and fully built travel plans.") 
 
+st.image("st_images/img1.png")
+
 st.divider()
     
-# Embed a youtube video
-st_player("https://soundcloud.com/toto-official/africa-1?in=alana97/sets/80s")
+# Explain project
+st.write("## How did we do it?")
+    #add images to display in here
+st.image(["st_images/scheme.png"])
+# st_player("https://soundcloud.com/toto-official/africa-1?in=alana97/sets/80s")
 
 # print links randomly ordered
 

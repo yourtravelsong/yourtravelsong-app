@@ -2,6 +2,6 @@ from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
     MONGODB_CONNETCTION_STRING: str
-    PORT: int
+    #PORT: int
 
 settings = Config()
