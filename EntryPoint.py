@@ -27,6 +27,12 @@ def get_suggestion():
     if request.method == 'GET':
         artist = request.args.get('artist')
         song = request.args.get('title')
+
+        if artist is None:
+            artist = request.json["artist"]
+        if song is None:
+            song = request.json["title"]
+
         print("Input get: ", artist, song)
         result = backend.get_suggestion(artist, song)
         return jsonify({"status": "success", "result": result})

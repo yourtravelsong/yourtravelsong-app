@@ -18,9 +18,9 @@ def travel_plan(results):
             if (not omit):
                 i += 1        
                 st.header(f"Travel plan idea #{i}")
-                if os.path.exists(f"../airline-logos/logos/{offer["airline_code"][0]}.png"):
-                    st.image(f"../airline-logos/logos/{offer["airline_code"][0]}.png", None, 500)
-                st.write(f"You have an available flight with {offer["airline_code"][0]} - {offer["airline_name"]}, with its departure at {offer["departure"]}, with a price of {offer["price"]} {offer["currency"]}.")
+                if os.path.exists(f"../airline-logos/logos/{offer['airline_code'][0]}.png"):
+                    st.image(f"../airline-logos/logos/{offer['airline_code'][0]}.png", None, 500)
+                st.write(f"You have an available flight with {offer['airline_code'][0]} - {offer['airline_name']}, with its departure at {offer['departure']}, with a price of {offer['price']} {offer['currency']}.")
 
 def print_city_img(city: str) -> None:
     search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={UNSPLASH_API_KEY}"
