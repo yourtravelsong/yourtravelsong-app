@@ -1,17 +1,9 @@
 import streamlit as st
 import requests
 import os
-import json
 import pandas as pd
-import subprocess
 
-API_KEY = os.getenv("UNSPLASH_API_KEY")
-
-def get_res(json_path: str):
-    f = open(json_path)
-    res = json.load(f)
-    f.close()
-    return res
+UNSPLASH_API_KEY = os.getenv("UNSPLASH_API_KEY")
 
 def travel_plan(results):
     st.divider()
@@ -31,16 +23,15 @@ def travel_plan(results):
                 st.write(f"You have an available flight with {offer["airline_code"][0]} - {offer["airline_name"]}, with its departure at {offer["departure"]}, with a price of {offer["price"]} {offer["currency"]}.")
 
 def print_city_img(city: str) -> None:
-    search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={API_KEY}"
-    
+    search_url = f"https://api.unsplash.com/search/photos?query={city}&client_id={UNSPLASH_API_KEY}"
     response = requests.get(search_url)
+    st.write(response)
     results = response.json().get("results")
+    st.write(results)
+    image_url = results["urls"]["regular"]
+    image_response = requests.get(image_url)
     
-    if results:
-        image_url = results[0]["urls"]["regular"]
-        image_response = requests.get(image_url)
-        
-        st.image(image_response.content)
+    st.image(image_response.content)
 
 def write_results(cities: list[str], expl: str) -> None:
     if (len(cities) > 0):
@@ -50,7 +41,7 @@ def write_results(cities: list[str], expl: str) -> None:
         st.write("")
         if (expl):
             st.caption(expl)
-        print_city_img(cities[0]) # false to not waste credits for the unsplash api
+        print_city_img(cities[0])
         if (len(cities) != 0):
             st.write("#### Other recommendations:")
             for city in cities[1:]:
@@ -81,7 +72,6 @@ def entry_point_request(song, author):
     except requests.exceptions.RequestException as e:
         st.warning(f"Something went wrong: {e}")
         st.stop()
-    st.write(response.json())
     return response.json()
 
 def get_input() -> str:

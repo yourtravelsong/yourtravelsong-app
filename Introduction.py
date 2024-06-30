@@ -19,14 +19,22 @@ st.markdown(
     YourTravelSong is a product  built specifically to
     interpret songs into desired travel destinations and real-time found travel plans.
     \n**👈 Select the App page from the sidebar** to see some examples
-    of what Streamlit can do!
-    \n### Want to learn more?
+    of what YourTravelSong can do!
     """)
-st.markdown("- Perfect for **music-integrated apps** to display heavily **personalized travel ads**.")
-st.markdown("- Versatile and easy to integrate, it _only_ needs a song and an author to work.")
-st.markdown("- Gives up many destinations ordered in relevance and fully built travel plans.") 
+
+st.divider()
 
 st.image("st_images/img1.png")
+
+st.divider()
+
+st.write("### Want to learn more?")
+
+st.markdown("- Perfect for **music-integrated apps** to display heavily **personalized travel ads**.")
+st.markdown("- Versatile and expandable, it _only_ needs a song and an author to work.")
+st.markdown("- Gives many favorite destinations and fully built travel plans.") 
+
+
 
 st.divider()
     
