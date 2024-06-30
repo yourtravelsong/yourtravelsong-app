@@ -59,12 +59,8 @@ class TravelBackend:
             print("NO cities found")
             return {"artist": artist, "song": song, "city_sugg": "X", "sentiments": [], "offers": []}
 
-        ## TODO: for now we just take the first city, expand to multiple cities
-
-       # print("sentimentsFromLyric", sentimentsFromLyric)
         allOffers = []
         for aCity in obtainedCities:
-             ### TODO
             IATAcode = self.computeIATACode(self.query_dispatcher.llm, aCity)
             print("IATA code: ", IATAcode, " for city: ", aCity)
             currentLocation = self.getCurrentLocation()
