@@ -1,3 +1,5 @@
 env
 *.env
 /airline-logos
+airline-logos/
+airline-logos
