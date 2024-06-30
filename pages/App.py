@@ -26,7 +26,7 @@ def travel_plan(results):
             if (not omit):
                 i += 1        
                 st.header(f"Travel plan idea #{i}")
-                st.image(f"../airline-logos/logos/{offer["airline_code"][0]}", None, 500)
+                st.image(f"../airline-logos/logos/{offer["airline_code"][0]}.png", None, 500)
                 st.write(f"You have an available flight with {offer["airline_code"][0]} - {offer["airline_name"]}, with its departure at {offer["departure"]}, with a price of {offer["price"]} {offer["currency"]}.")
 
 def print_city_img(city: str, show: bool) -> None:
@@ -75,12 +75,12 @@ def entry_point_request(song, author):
         "Content-Type": "application/json"
     }
     try:
-        response = requests.post(url, json=data, headers=headers)
+        response = requests.get(url, json=data, headers=headers)
         response.raise_for_status()  # Raise an error for bad status codes
     except requests.exceptions.RequestException as e:
         st.warning(f"Something went wrong: {e}")
         st.stop()
-    
+    st.write(response.json())
     return response.json()
 
 def get_input() -> str:

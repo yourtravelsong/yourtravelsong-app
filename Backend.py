@@ -76,7 +76,7 @@ class TravelBackend:
 
 
         sentimentsFromLyric = suggestion['sentiment']
-        return {"artist": artist, "song": song,  "sentiments": sentimentsFromLyric, "offers": allOffers}
+        return {"artist": artist, "song": song,  "sentiments": sentimentsFromLyric, "recommendations": allOffers}
 
     def getCurrentLocation(self):
         ### TODO: obtain client location

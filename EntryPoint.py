@@ -14,7 +14,7 @@ with app.app_context():
 
 @app.route('/getsuggestion', methods=['GET', 'POST'])
 def get_suggestion():
-    if request.method == 'POST':
+    if request.method == 'GET':
         counter.increment()
         print("Invoked: ", counter.get_value())
         artist = request.json["artist"]
@@ -25,7 +25,7 @@ def get_suggestion():
 
         return jsonify({"status": "success", "result": result})
 
-    elif request.method == 'GET':
+    elif request.method == 'POST':
         return jsonify({"status": "error", "message": "GET method not supported"})
     else:
         return jsonify({"status": "error", "message": "HTTP method not supported"})
