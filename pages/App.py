@@ -1,11 +1,12 @@
-# run with: streamlit run app_demo.py
 import streamlit as st
 import requests
 import os
 import json
 import pandas as pd
+import subprocess
 
 API_KEY = os.getenv("UNSPLASH_API_KEY")
+JSON_RES_PATH = "results.json"
 
 def get_res(json_path: str):
     f = open(json_path)
@@ -64,6 +65,23 @@ def start_exec(song, author, results):
     result_explanation: str = "This would be a *great* location for your travel! It includes some museums in pop art and other activities you might fancy."
     return recommended_cities, result_explanation
 
+def entry_point_request(song, author):
+    url = "http://127.0.0.1:5000/getsuggestion"
+    data = {
+        "artist": author,
+        "title": song
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()  # Raise an error for bad status codes
+        st.write(response.json())
+    except requests.exceptions.RequestException as e:
+        st.warning(f"Something went wrong: {e}")
+        st.stop()
+
 def get_input() -> str:
     #get input from user (song - author)
     song = st.text_input("What is the name of a song that you're listening to right now?")
@@ -73,14 +91,18 @@ def get_input() -> str:
     if not author:
         st.stop()
     st.success('Name and author correctly submitted. Thanks!')
+    entry_point_request(song, author)
     return song, author
 
 def main() -> None:
     st.title("YourTravelSong")
     st.divider()
+
+    # get input from streamlit and start request to entry point
     song, author = get_input()
 
-    json_path = "results.json" #HARDCODED!!!!
+    json_path = JSON_RES_PATH #HARDCODED!!!!
+
     if not os.path.exists(json_path):
         st.warning("Something went wrong :(")
         st.stop()
