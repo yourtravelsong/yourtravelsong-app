@@ -36,7 +36,7 @@ st_player("https://soundcloud.com/toto-official/africa-1?in=alana97/sets/80s")
 st.divider()
 st.markdown("Developed by:\n")
 
-links = ["www.linkedin.com/in/matiassebastianmartinez", "www.linkedin.com/in/manel-palacin-diaz", "www.linkedin.com/in/eyuel-muse-woldesembet"]
+links = ["Matias Martínez - www.linkedin.com/in/matiassebastianmartinez", "Manel Palacín - www.linkedin.com/in/manel-palacin-diaz", "Eyuel Muse - www.linkedin.com/in/eyuel-muse-woldesembet"]
 random.shuffle(links)
 for link in links:
     st.markdown(f"- {link}")

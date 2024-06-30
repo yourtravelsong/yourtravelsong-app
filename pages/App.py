@@ -6,7 +6,6 @@ import pandas as pd
 import subprocess
 
 API_KEY = os.getenv("UNSPLASH_API_KEY")
-JSON_RES_PATH = "results.json"
 
 def get_res(json_path: str):
     f = open(json_path)
@@ -19,7 +18,7 @@ def travel_plan(results):
     st.markdown("Would you like to know your :gray-background[personalized travel plans?] :airplane_departure: ")
     if (st.button("Show me!")):
         i = 0
-        for offer in results["result"]["offers"]:
+        for offer in results["result"]["recommendations"][0]["offers"]:
             omit = False
             for key in offer:
                 if offer[key] == None:
@@ -59,10 +58,10 @@ def write_results(cities: list[str], expl: str) -> None:
 def start_exec(song, author, results):
     # get cities from each result
     recommended_cities = []
-    for res in results:
-        recommended_cities.append(results["result"]["city_sugg"])
+    for res in results["result"]["recommendations"]:
+        recommended_cities.append(res["city"])
 
-    result_explanation: str = "This would be a *great* location for your travel! It includes some museums in pop art and other activities you might fancy."
+    result_explanation: str = results["result"]["recommendations"][0]["reason"]
     return recommended_cities, result_explanation
 
 def entry_point_request(song, author):
@@ -81,6 +80,7 @@ def entry_point_request(song, author):
     except requests.exceptions.RequestException as e:
         st.warning(f"Something went wrong: {e}")
         st.stop()
+    return response
 
 def get_input() -> str:
     #get input from user (song - author)
@@ -91,7 +91,6 @@ def get_input() -> str:
     if not author:
         st.stop()
     st.success('Name and author correctly submitted. Thanks!')
-    entry_point_request(song, author)
     return song, author
 
 def main() -> None:
@@ -101,14 +100,8 @@ def main() -> None:
     # get input from streamlit and start request to entry point
     song, author = get_input()
 
-    json_path = JSON_RES_PATH #HARDCODED!!!!
-
-    if not os.path.exists(json_path):
-        st.warning("Something went wrong :(")
-        st.stop()
-
     # get the results
-    results = get_res(json_path)
+    results = entry_point_request(song, author)
 
     # display output
     cities, explanation = start_exec(song, author, results)
