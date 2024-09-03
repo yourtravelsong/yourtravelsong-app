@@ -1,4 +1,4 @@
-# Your Travel Song
+# Your Travel Song - YTS
 
 ## The goal of the project
 
@@ -38,13 +38,37 @@ pip install -r requirements.txt```
 
 ```
 
+### Configuration of API keys
+
+As YTS uses external APIs, you need to configure the keys for the APIs.
+The current version needs the following keys:
+
+```
+AMADEUS_API_KEY=<YOUR_API_KEY>
+AMADEUS_SECRET_KEY=<YOUR_API_KEY>
+HUGGINGFACE_API_KEY=<YOUR_API_KEY>
+MISTRAL_API_KEY=<YOUR_API_KEY>
+MONGODB_CONNETCTION_STRING=<YOUR_API_KEY>
+PINECONE_API_KEY=<YOUR_API_KEY>
+```
+
+#### Configuration alternative 1:
+
+Create an index.env file in the root directory of the project and add the keys in the following format:
+
+```
+export AMADEUS_API_KEY=<YOUR_API_KEY>
+...
+
+```
+When run `source index.env` the keys will be loaded into the environment variables.
 
 ## How to run
 
 The backend is launched using the following command:
 
 ```
-python EntryPoint
+python EntryPoint.py
 ```
 That will start the server on port 5000.
 The API is composed by `getsuggestion` accessible via GET:
