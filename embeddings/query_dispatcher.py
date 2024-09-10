@@ -1,23 +1,25 @@
 from llama_index.llms.mistralai import MistralAI
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core import get_response_synthesizer
-from embeddings.custom_query_engine import RAGQueryEngine, RAGStringQueryEngine
-from embeddings.config import settings
-from dal.dal import MongoRepository
-from embeddings.pinecone_repo import PineconeRpository
-from llama_index.core import PromptTemplate
 
+from embeddings.config import Settings
+from embeddings.custom_query_engine import RAGQueryEngine, RAGStringQueryEngine
+from dal.dal import MongoRepository
+from embeddings.pinecone_repo import PineconeRepository
+from llama_index.core import PromptTemplate
 
 class QueryDispatcher:
     def __init__(self):
+
+        self.settings = Settings()
+
         self.llm = MistralAI(
-            api_key=settings.MISTRAL_API_KEY
+            api_key=self.settings.MISTRAL_API_KEY
         )
-        self.pinecone_repo = PineconeRpository()
+        self.pinecone_repo = PineconeRepository()
         self.mongo_repo = MongoRepository(
-                                db_name="sample_mflix",
-                                collection_name="songs"
-                            )
+            db_name=self.settings.mongodb_name,
+            collection_name=self.settings.mongodb_collection_name)
 
         self.synthesizer = get_response_synthesizer(
             response_mode="compact", llm=self.llm
@@ -30,6 +32,7 @@ class QueryDispatcher:
     def get_song_lyrics(self, song:str, artist:str):
         query = {"song": song, "artist": artist}
         response = self.mongo_repo.find_one(query)
+        print("Response From Mongo: ", response)
         self.song_lyrics = response.get("cleaned_text")
 
     def compose_query(self, song:str, artist:str):
@@ -62,7 +65,7 @@ class QueryDispatcher:
     
     def get_response(self, song:str, artist:str):
         self.compose_query(song, artist)
-        self.retriever = self.pinecone_repo.get_retriever("cities")
+        self.retriever = self.pinecone_repo.get_retriever(self.settings.VectorStoreName)
         query_engine = RAGStringQueryEngine(
             retriever=self.retriever, 
             response_synthesizer=self.synthesizer,
