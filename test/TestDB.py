@@ -6,19 +6,16 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from pymongo.cursor import Cursor
 from pymongo.mongo_client import MongoClient
+from config import TestArguments
 
 logger = logging.getLogger(__name__)
-
-class Arguments(BaseSettings):
-      env_file:str = "../index.env"
-      log_level: str = "DEBUG"
 
 class TestDatabases(unittest.TestCase):
 
     def setUp(self):
-        self.argument = Arguments()
+        self.argument = TestArguments()
         logging.basicConfig(level=logging.getLevelName(self.argument.log_level))
-        print("Env file ", self.argument.env_file)
+        logging.debug(f"Env file {self.argument.env_file}")
 
         load_dotenv(self.argument.env_file)
 
