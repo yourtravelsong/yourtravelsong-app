@@ -21,7 +21,6 @@ class RAGStringQueryEngine(CustomQueryEngine):
     """RAG String Query Engine."""
 
     retriever: BaseRetriever
-    response_synthesizer: BaseSynthesizer
     llm: MistralAI
     qa_prompt: PromptTemplate
 
