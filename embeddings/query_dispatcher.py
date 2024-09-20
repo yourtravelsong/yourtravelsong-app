@@ -1,12 +1,16 @@
+import logging
+
 from llama_index.llms.mistralai import MistralAI
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core import get_response_synthesizer
-
 from embeddings.config import Settings
-from embeddings.custom_query_engine import RAGQueryEngine, RAGStringQueryEngine
+from embeddings.custom_query_engine import RAGStringQueryEngine
 from dal.dal import MongoRepository
 from embeddings.pinecone_repo import PineconeRepository
 from llama_index.core import PromptTemplate
+
+
+logger = logging.getLogger(__name__)
 
 class QueryDispatcher:
     def __init__(self):
@@ -32,7 +36,7 @@ class QueryDispatcher:
     def get_song_lyrics(self, song:str, artist:str):
         query = {"song": song, "artist": artist}
         response = self.mongo_repo.find_one(query)
-        print("Response From Mongo: ", response)
+        logger.debug("Response From Mongo: ", response)
         self.song_lyrics = response.get("cleaned_text")
 
     def compose_query(self, song:str, artist:str):

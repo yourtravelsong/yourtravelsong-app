@@ -1,5 +1,6 @@
+import logging
 import os
-
+from venv import logger
 from dotenv import load_dotenv
 from flask import Flask, jsonify,request
 from Counter import Counter
@@ -7,7 +8,7 @@ from Backend import TravelBackend as Backend
 app = Flask(__name__)
 
 with app.app_context():
-    print("App context init")
+    logger.info("App context init")
 
 @app.route('/getsuggestion', methods=['GET', 'POST'])
 def get_suggestion():
@@ -21,14 +22,17 @@ def get_suggestion():
         if song is None:
             song = request.json["title"]
 
-        print("Input get: ", artist, song)
+        logger.info("Input get: ", artist, song)
         result = backend.get_suggestion(artist, song)
         return jsonify({"status": "success", "result": result})
 
     if request.method == 'POST':
+        ### TODO: this method, we could use it for retrieve the song lyric as input instead of the artist and song
         print("Receiving {} request".format(request.method))
         counter.increment()
         print("Invoked: ", counter.get_value())
+        ## TODO:
+        logger.warning("Method POST not already implemented as expected")
         artist = request.json["artist"]
         song = request.json["title"]
         print("Input post: ", artist, song)
@@ -44,7 +48,7 @@ def get_suggestion():
 
 if __name__ == '__main__':
 
-    print("Loading env vars")
+    logger.debug("Loading env vars")
     load_dotenv("index.env")
 
     assert os.getenv("AMADEUS_API_KEY") is not None
@@ -53,6 +57,8 @@ if __name__ == '__main__':
     assert os.getenv("MONGODB_CONNECTION_STRING_REMOTE") is not None
     assert os.getenv("MISTRAL_API_KEY") is not None
     assert os.getenv("PINECONE_API_KEY") is not None
+
+    logging.basicConfig(level=logging.DEBUG)
 
     counter = Counter()
     backend = Backend()
