@@ -32,15 +32,27 @@ class QueryDispatcher:
         self.song_lyrics: str = ''
         self.retriever: VectorIndexRetriever = None
         self.query:str = ''
-        
-    def get_song_lyrics(self, song:str, artist:str):
+
+    def get_response(self, song:str, artist:str):
+        self.__compose_query(song, artist)
+        self.retriever = self.pinecone_repo.get_retriever(self.settings.VectorStoreName)
+        query_engine = RAGStringQueryEngine(
+            retriever=self.retriever,
+            response_synthesizer=self.synthesizer,
+            llm=self.llm,
+            qa_prompt=self.prompt
+        )
+        response = query_engine.custom_query(self.query)
+        return response
+
+    def __get_song_lyrics(self, song:str, artist:str):
         query = {"song": song, "artist": artist}
         response = self.mongo_repo.find_one(query)
         logger.debug("Response From Mongo: ", response)
         self.song_lyrics = response.get("cleaned_text")
 
-    def compose_query(self, song:str, artist:str):
-        self.get_song_lyrics(song, artist=artist)
+    def __compose_query(self, song:str, artist:str):
+        self.__get_song_lyrics(song, artist=artist)
         self.query = f"""
             What cities do you think someone listening to 
             the following song would like to visit based on 
@@ -67,14 +79,3 @@ class QueryDispatcher:
             "Answer: "
         )
     
-    def get_response(self, song:str, artist:str):
-        self.compose_query(song, artist)
-        self.retriever = self.pinecone_repo.get_retriever(self.settings.VectorStoreName)
-        query_engine = RAGStringQueryEngine(
-            retriever=self.retriever, 
-            response_synthesizer=self.synthesizer,
-            llm=self.llm,
-            qa_prompt=self.prompt
-        )
-        response = query_engine.custom_query(self.query)
-        return response
