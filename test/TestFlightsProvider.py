@@ -9,27 +9,29 @@ from config import TestArguments
 logger = logging.getLogger(__name__)
 
 
-class TestFlighProviders(unittest.TestCase):
+class TestFlightProviders(unittest.TestCase):
 
     def setUp(self):
 
         self.argument = TestArguments()
         logging.basicConfig(level=logging.getLevelName(self.argument.log_level))
-        logging.debug(f"Env file {self.argument.env_file}")
 
-        load_dotenv(self.argument.env_file)
+        if os.getenv("AMADEUS_API_KEY") is None and os.path.exists(self.argument.env_file):
+            load_dotenv(self.argument.env_file)
+
+        self.apikey = os.getenv("AMADEUS_API_KEY")
+        self.apisecret = os.getenv("AMADEUS_SECRET_KEY")
 
 
     def testAmadeusAPI(self):
-        apikey = os.getenv("AMADEUS_API_KEY")
-        apisecret = os.getenv("AMADEUS_SECRET_KEY")
 
-        self.assertIsNotNone(apikey)
-        self.assertIsNotNone(apisecret)
+
+        self.assertIsNotNone(self.apikey)
+        self.assertIsNotNone(self.apisecret)
 
         amadeus = Client(
-            client_id=apikey,
-            client_secret=apisecret
+            client_id=self.apikey,
+            client_secret=self.apisecret
         )
 
         try:

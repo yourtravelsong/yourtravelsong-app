@@ -18,7 +18,9 @@ class VectorDBTest(unittest.TestCase):
     def setUp(self):
         self.argument = TestArguments()
         logging.basicConfig(level=logging.getLevelName(self.argument.log_level))
-        load_dotenv(self.argument.env_file)
+
+        if os.getenv("PINECONE_API_KEY") is None and os.path.exists(self.argument.env_file):
+            load_dotenv(self.argument.env_file)
 
         self.PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
         assert self.PINECONE_API_KEY is not None, "PINECONE_API_KEY is None"

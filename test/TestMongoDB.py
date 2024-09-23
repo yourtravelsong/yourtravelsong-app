@@ -3,7 +3,6 @@ import os
 import unittest
 import certifi
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
 from pymongo.cursor import Cursor
 from pymongo.mongo_client import MongoClient
 from config import TestArguments
@@ -15,10 +14,11 @@ class TestDatabases(unittest.TestCase):
     def setUp(self):
         self.argument = TestArguments()
         logging.basicConfig(level=logging.getLevelName(self.argument.log_level))
-        logging.debug(f"Env file {self.argument.env_file}")
 
-        load_dotenv(self.argument.env_file)
+        if os.getenv("MONGODB_CONNECTION_STRING") is None and os.path.exists(self.argument.env_file):
+            load_dotenv(self.argument.env_file)
 
+        assert os.getenv("MONGODB_CONNECTION_STRING") is not None, "MONGODB_CONNECTION_STRING is None"
         self.mongo_uri = os.getenv("MONGODB_CONNECTION_STRING")
         self.isRemote = not "127.0.0.1" in self.mongo_uri and not "localhost" in self.mongo_uri
 

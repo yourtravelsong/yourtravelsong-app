@@ -7,12 +7,14 @@ from config import TestArguments
 from embeddings.query_dispatcher import QueryDispatcher
 logger = logging.getLogger(__name__)
 
-class QueryDispacher(unittest.TestCase):
+class QueryDispacherTest(unittest.TestCase):
 
     def setUp(self):
         self.argument = TestArguments()
         logging.basicConfig(level=logging.getLevelName(self.argument.log_level))
-        load_dotenv(self.argument.env_file)
+
+        if os.getenv("MONGODB_CONNECTION_STRING") is None and os.path.exists(self.argument.env_file):
+            load_dotenv(self.argument.env_file)
 
     def test_queryDispatcher(self):
 
