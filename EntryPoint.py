@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 from itertools import count
 from venv import logger
 from dotenv import load_dotenv
@@ -26,7 +27,7 @@ def get_suggestion():
         if song is None:
             song = request.json["title"]
 
-        logger.info("Input get: ", artist, song)
+        logger.info(f"Input get: {artist} {song}" )
         result = backend.get_suggestion(artist, song)
         return jsonify({"status": "success", "result": result})
 
@@ -71,6 +72,19 @@ def run():
 
 def turn_off():
     app.run()
+
+
+@app.route("/restart")
+def restart():
+    #TODO: check if this is working
+    subprocess.run("shutdown -r 0", shell=True, check=True)
+    return "Restarting"
+
+@app.route("/shutdown")
+def shutdown():
+    #TODO: check if this is working
+    subprocess.run("shutdown -h 0", shell=True, check=True)
+    return "Shutting down!"
 
 if __name__ == '__main__':
     run()

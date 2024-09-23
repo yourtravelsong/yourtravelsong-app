@@ -19,7 +19,7 @@ class TravelBackend:
 
     def retrieveSuggestion(self, artist, song):
         response = self.query_dispatcher.get_response(song=song, artist=artist)
-        logger.debug("Response from query_dispatcher: ", response)
+        logger.debug(f"Response from query_dispatcher: {response}" )
         responseJson = json.loads(response)
         return responseJson
 
@@ -33,6 +33,26 @@ class TravelBackend:
         message =  "IATA code must have 3 characters: "+candidateIATA+" but have "+str(len(candidateIATA))
         assert len(candidateIATA) == 3, message
         return candidateIATA
+    
+    def obtainAIATACodeFromAmadeusAPI(self, model, obtainedCity):
+
+        response = self.amadeus.reference_data.locations.get(
+            keyword=obtainedCity,
+            subType='AIRPORT'
+        )
+        ### let's get the first airport
+        if response is not None and len(response.data) > 0:
+            return response.data[0]["iataCode"]
+        else: 
+            ## let's try with the city
+            response = self.amadeus.reference_data.locations.get(
+                keyword=obtainedCity,
+                subType='CITY'
+            )
+            
+            if response is not None and len(response.data) > 0:
+                return response.data[0]["iataCode"]
+        
 
     def getAirlineData(self,airlineCodes):
 
@@ -43,7 +63,7 @@ class TravelBackend:
         logger.debug("Asking for airline data for code: {}".format(airlineCode))
         ## Return cached data if available
         if airlineCode in cacheAirlineData:
-            logger.debug("Returning cached data for airline code: ", airlineCode)
+            logger.debug(f"Returning cached data for airline code: {airlineCode}" )
             response =  cacheAirlineData[airlineCode]
             return response.data[0]["businessName"], response.data[0]["icaoCode"]
         else:
@@ -76,7 +96,7 @@ class TravelBackend:
 
         allOffers = []
         for aCity in obtainedCities:
-            IATAcode = self.computeIATACode(self.query_dispatcher.llm, aCity)
+            IATAcode = self.obtainAIATACodeFromAmadeusAPI(self.query_dispatcher.llm, aCity)
             logger.debug(f"IATA code for city: {aCity}: {IATAcode}")
             currentLocation = self.getCurrentLocation()
 
@@ -118,8 +138,7 @@ class TravelBackend:
                     airlinecode = firstFlight['validatingAirlineCodes']
                     logger.debug("Retrieving airlineData from flight: {}".format(firstFlight))
                     airlinename, icaoCode = self.getAirlineData(airlinecode)
-                    logger.debug("Price: ", price, currency, " Airline_code: ", airlinecode, " Airline_name: ", airlinename,
-                          "Airline_icao_code", icaoCode)
+                    logger.debug(f"Price: {price} {currency},  Airline_code:  {airlinecode},  Airline_name: {airlinename} Airline_icao_code {icaoCode}")
                     aFlight = {"type": "flight", "airline_name": airlinename, "price": price,
                                "currency": currency,
                                "departure": departureDate,

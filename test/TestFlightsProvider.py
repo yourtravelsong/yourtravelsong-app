@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import unittest
@@ -54,6 +55,46 @@ class TestFlightProviders(unittest.TestCase):
             print(error.response.body)
             self.fail(error.response.body)
 
+
+    def testGetCities(self):
+        amadeus = Client(
+            client_id=self.apikey,
+            client_secret=self.apisecret
+        )
+
+        try:
+            response = amadeus.reference_data.locations.get(
+                keyword='LON',
+                subType='CITY'
+            )
+
+            self.assertTrue(len(response.data) > 0)
+            #print(response.data)
+            print(json.dumps(response.data, indent=4))
+            ## Now also airport
+            response = amadeus.reference_data.locations.get(
+                keyword='LON',
+                subType='CITY,AIRPORT'
+            )
+            logger.debug("Response from Amadeus city and airport: ", response)
+            self.assertTrue(len(response.data) > 0)
+            # print(response.data)
+            logger.debug(json.dumps(response.data, indent=4))
+
+
+            ### JUST AIRPORTS
+
+            response = amadeus.reference_data.locations.get(
+                keyword='Barcelona',
+                subType='AIRPORT'
+            )
+            logger.debug("Response from Amadeus Just airport ", response)
+            self.assertTrue(len(response.data) > 0)
+            logger.debug(json.dumps(response.data, indent=4))
+
+        except ResponseError as error:
+            print(error.response.body)
+            self.fail(error.response.body)
 
 if __name__ == '__main__':
     unittest.main()
