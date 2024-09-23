@@ -1,10 +1,14 @@
 import logging
 import os
+from itertools import count
 from venv import logger
 from dotenv import load_dotenv
 from flask import Flask, jsonify,request
+
 from Counter import Counter
 from Backend import TravelBackend as Backend
+from config import Arguments
+
 app = Flask(__name__)
 
 with app.app_context():
@@ -44,23 +48,29 @@ def get_suggestion():
     else:
         return jsonify({"status": "error", "message": "HTTP method not supported"})
 
+def run():
+    global counter, backend
 
-
-if __name__ == '__main__':
-
-    logger.debug("Loading env vars")
-    load_dotenv("index.env")
+    config = Arguments()
+    logging.basicConfig(level=logging.getLevelName(config.log_level))
+    if os.path.exists(config.env_file):
+        load_dotenv(config.env_file)
+    else:
+        logger.warning(f"Env file not found {config.env_file}")
 
     assert os.getenv("AMADEUS_API_KEY") is not None
     assert os.getenv("AMADEUS_SECRET_KEY") is not None
     assert os.getenv("MONGODB_CONNECTION_STRING") is not None
-    assert os.getenv("MONGODB_CONNECTION_STRING_REMOTE") is not None
     assert os.getenv("MISTRAL_API_KEY") is not None
     assert os.getenv("PINECONE_API_KEY") is not None
-
-    logging.basicConfig(level=logging.DEBUG)
 
     counter = Counter()
     backend = Backend()
 
     app.run(debug=True)
+
+def turn_off():
+    app.run()
+
+if __name__ == '__main__':
+    run()
