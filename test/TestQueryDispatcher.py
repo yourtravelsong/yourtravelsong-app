@@ -1,3 +1,4 @@
+import json
 import logging
 import unittest
 from dotenv import load_dotenv
@@ -18,12 +19,14 @@ class QueryDispacher(unittest.TestCase):
         distpacher = QueryDispatcher()
         response = distpacher.get_response('Africa', 'Toto')
 
-        logger.debug(response)
-        self.assertIsNotNone(response)
-        self.assertEqual(response["song"], 'Africa')
-        self.assertTrue(len(response["cities"]) > 0)
-        self.assertTrue(len(response["sentiment"]) > 0)
-        self.assertTrue(len(response["reasons_why"]) > 0)
+        responseJson = json.loads(response)
+
+        logger.debug(responseJson)
+        self.assertIsNotNone(responseJson)
+        self.assertEqual(responseJson["song"], 'Africa')
+        self.assertTrue(len(responseJson["cities"]) > 0)
+        self.assertTrue(len(responseJson["sentiment"]) > 0)
+        self.assertTrue(len(responseJson["reasons_why"]) > 0)
 
 if __name__ == '__main__':
     unittest.main()
