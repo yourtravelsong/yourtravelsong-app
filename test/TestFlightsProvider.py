@@ -24,6 +24,10 @@ class TestFlightProviders(unittest.TestCase):
         self.apikey = os.getenv("AMADEUS_API_KEY")
         self.apisecret = os.getenv("AMADEUS_SECRET_KEY")
 
+        self.amadeus = Client(
+            client_id=self.apikey,
+            client_secret=self.apisecret
+        )
 
     def testAmadeusAPI(self):
 
@@ -132,6 +136,76 @@ class TestFlightProviders(unittest.TestCase):
         self.assertTrue(response.data[0]["type"] == "location")
         self.assertTrue(response.data[0]["subType"] == "CITY")
         self.assertTrue("geoCode" in response.data[0])
+
+
+    def testURL(self):
+
+        response = self.amadeus.get('/v1/reference-data/locations/cities', countryCode="FR", keyword='PARIS')
+        logger.debug(f"Response from Amadeus city: {response.data}" )
+        self.helperAssertCityApi(response)
+
+        response = self.amadeus.get('/v1/reference-data/locations/cities', keyword='PARIS')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        self.helperAssertCityApi(response)
+        for r in response.data:
+            print(r)
+
+        response = self.amadeus.get('/v1/reference-data/locations/cities', keyword='AUCKLAND')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        self.helperAssertCityApi(response)
+        for r in response.data:
+            print(r)
+
+        response = self.amadeus.get('/v1/reference-data/locations/cities', keyword='Buenos Aires')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        self.helperAssertCityApi(response)
+        for r in response.data:
+            print(r)
+
+    def helperAssertCityApi(self, response):
+        self.assertTrue(len(response.data) > 0)
+        self.assertTrue(response.data[0]["type"] == "location")
+        self.assertTrue(response.data[0]["subType"] == "city")
+        self.assertTrue("geoCode" in response.data[0])
+
+
+    def testAirportsAndCities(self):
+        #https://developers.amadeus.com/self-service/category/flights/api-doc/airport-and-city-search/api-reference
+        ## https://test.api.amadeus.com/v1/reference-data/locations?subType=AIRPORT&keyword=MUC&page%5Blimit%5D=10&page%5Boffset%5D=0&sort=analytics.travelers.score&view=FULL
+        response = self.amadeus.get('/v1/reference-data/locations', keyword='paris', subType='AIRPORT')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        for r in response.data:
+            print(r)
+
+        response = self.amadeus.get('/v1/reference-data/locations', keyword='paris', subType='CITY')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        for r in response.data:
+            print(r)
+
+        response = self.amadeus.get('/v1/reference-data/locations', keyword='EZE', subType='AIRPORT')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        for r in response.data:
+            print(r)
+
+    def testNearAirport(self):
+        # https://developers.amadeus.com/self-service/category/flights/api-doc/airport-nearest-relevant
+        ## Baires -34.61315 -58.37723
+    #    response = self.amadeus.get('/v1/reference-data/locations/airports',latitude=-34.6037, longitude=-58.3816)
+        response = self.amadeus.get('/v1/reference-data/locations/airports', latitude=50.8317114, longitude=4.372624)
+        logger.debug(f"Response from Amadeus city: {response.data}")
+        for r in response.data:
+            print(r)
+        print("Baires")
+        response = self.amadeus.get('/v1/reference-data/locations/cities', keyword='Buenos Aires')
+        logger.debug(f"Response from Amadeus city: {response.data}")
+
+        self.assertTrue(len(response.data) > 0)
+        databaires = response.data[0]
+        self.assertEqual(databaires["name"], "Buenos Aires")
+        self.assertEqual(databaires["iataCode"], "BUE")
+
+        response = self.amadeus.get('/v1/reference-data/locations/airports', latitude=databaires["geoCode"]["latitude"], longitude=databaires["geoCode"]["latitude"])
+        logger.debug(f"Response from Amadeus Baires city: {response.data}")
 
 
 if __name__ == '__main__':
