@@ -1,5 +1,5 @@
 import json
-
+from datetime import datetime
 import streamlit as st
 import requests
 import os
@@ -57,30 +57,28 @@ def write_results(results) -> None:
             st.divider()
             for i, offer in enumerate(aRecomentation["offers"]):
 
-                    #st.header(f"Travel plan idea #{i}")
-
-                    col1, col2, col3 = st.columns([2, 6, 1])  # The numbers represent the width ratio of the columns
-
-                    # Place the image in the first column
 
 
-                    # Place the link in the second column
+                    col1, col2, col3 = st.columns([2, 6, 1])
 
-
+                    ## todo: get
                     logoPath = f"/Users/matias/develop/code/yourtravelsong-app/airline-logos/logos/{offer['airline_icao_code']}.png"
 
                     with col1:
-                       #st.image("your_image.png", width=100)  # Replace with the path to your image
                         if os.path.exists(logoPath):
-                            #st.image(logoPath, None, 500)
 
                             st.image(logoPath)
 
                         else:
                             st.write(f"Airline logo not found for {logoPath}")
                     with col2:
+
+                        date_obj = datetime.strptime(offer['depart_time'], "%Y-%m-%dT%H:%M:%S")
+
+                        # Get the hour
+                        hour = f"{date_obj.hour}:{date_obj.minute}"
                         st.write(
-                            f"### {offer['departure']} - {offer['price']} {offer['currency']}")
+                            f"### {offer['departure']} - {hour}hs -Price:  {offer['price']} {offer['currency']}")
 
                     with col3:
                         #st.markdown("[BUY](https://www.edreams.com/travel/#results/type=R;from=BCN;to=PAR;dep=2024-09-27;ret=2024-10-22;buyPath=FLIGHTS_HOME_SEARCH_FORM;internalSearch=true)")

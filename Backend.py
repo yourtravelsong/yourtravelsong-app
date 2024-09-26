@@ -1,6 +1,8 @@
 import logging
 import os
 import json
+from time import sleep
+
 from amadeus import Client, ResponseError
 from datetime import datetime, timedelta
 from embeddings.query_dispatcher import QueryDispatcher
@@ -34,8 +36,10 @@ class TravelBackend:
         assert len(candidateIATA) == 3, message
         return candidateIATA
     
-    def obtainAIATACodeFromAmadeusAPI(self, model, obtainedCity):
+    def obtainAIATACodeFromAmadeusAPI(self, obtainedCity):
+        ## TODO https://developers.amadeus.com/self-service/category/destination-experiences/api-doc/city-search/api-reference
 
+        sleep(1)
         response = self.amadeus.reference_data.locations.get(
             keyword=obtainedCity,
             subType='AIRPORT'
@@ -43,7 +47,10 @@ class TravelBackend:
         ### let's get the first airport
         if response is not None and len(response.data) > 0:
             return response.data[0]["iataCode"]
-        else: 
+        else:
+
+            logger.debug(f"Airport not found for city: {obtainedCity} {response}")
+
             ## let's try with the city
             response = self.amadeus.reference_data.locations.get(
                 keyword=obtainedCity,
@@ -96,7 +103,8 @@ class TravelBackend:
 
         allOffers = []
         for aCity in obtainedCities:
-            IATAcode = self.obtainAIATACodeFromAmadeusAPI(self.query_dispatcher.llm, aCity)
+            sleep(1)
+            IATAcode = self.obtainAIATACodeFromAmadeusAPI(aCity)
             logger.debug(f"IATA code for city: {aCity}: {IATAcode}")
             currentLocation = self.getCurrentLocation()
 
@@ -131,6 +139,9 @@ class TravelBackend:
                 logger.debug(f"Flight found: ({len(response.data)})" )
 
                 for i in range(min(topFlights, len(response.data)) ):
+
+                    sleep(1)
+
                     logger.debug(f"\n----Flight {i}:")
                     firstFlight = response.data[i]
                     price = firstFlight['price']['total']
@@ -139,11 +150,15 @@ class TravelBackend:
                     logger.debug("Retrieving airlineData from flight: {}".format(firstFlight))
                     airlinename, icaoCode = self.getAirlineData(airlinecode)
                     logger.debug(f"Price: {price} {currency},  Airline_code:  {airlinecode},  Airline_name: {airlinename} Airline_icao_code {icaoCode}")
+
+                    itineraties = firstFlight['itineraries']
+
                     aFlight = {"type": "flight", "airline_name": airlinename, "price": price,
                                "currency": currency,
                                "departure": departureDate,
                                "airline_code": airlinecode,
                                "airline_icao_code": icaoCode,
+                               "depart_time": itineraties[0]['segments'][0]['departure']['at'],
                                "status": "success", "i": i}
                     resultAllFlights.append(aFlight)
                 return resultAllFlights
