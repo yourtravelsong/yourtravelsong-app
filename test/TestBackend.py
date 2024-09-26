@@ -4,7 +4,7 @@ import unittest
 import json
 import requests
 from dotenv import load_dotenv
-Addfrom config import TestArguments
+from config import TestArguments
 
 
 class APIUnitTestCase(unittest.TestCase):
